@@ -1,0 +1,8 @@
+[package]
+name = "cli"
+version = "0.1.0"
+authors = ["geropl <gero.posmyk-leinemann@typefox.io>"]
+
+[dependencies]
+clap = "2.32.0"
+nom = "4.0.0"
