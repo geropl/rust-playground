@@ -1,0 +1,9 @@
+# https://en.wikipedia.org/wiki/First-order_logic#Equality_and_its_axioms
+#
+# Expressions:
+# Formula: (In)Equality, Quantifiers, Predicate symbols, Binary connectives
+# Term: Variables and Functions
+# Functions: Functions and Constants (nullary functions)
+# Examples Functions: ∧ for conjunction, ∨ for disjunction
+Bit = 1 | 0.
+Bits = [ Bit+ ].
