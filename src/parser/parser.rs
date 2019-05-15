@@ -5,7 +5,7 @@ use nom::types::CompleteStr;
 
 use ast::{
     QuantifiedSymbol, Quantifier, Statement, StatementLhs, StatementLhs::PatternName, StatementRhs,
-    Statements, Symbol, SequentialExpression,
+    Statements, Symbol, SequentialExpression, Comment,
 };
 
 pub fn to_str(s: &str) -> CompleteStr {
@@ -14,12 +14,57 @@ pub fn to_str(s: &str) -> CompleteStr {
 
 named!(pub statement_list<CompleteStr, Statements>,
     do_parse!(
-        list: many1!(ws!(statement))    >>
+        //list: many1!(ws!(statement))    >>
+        list: fold_many1!( alt!( ws!(statement) ), Vec::new(), |mut acc: Vec<Statement>, item| {
+            match item {
+                Statement::Equivalence {lhs, rhs} => acc.push(item),
+            }
+            acc
+        })   >>
         (Statements::List {
             list
         })
     )
 );
+
+
+
+#[test]
+fn parse_statement_list() {
+    let result = statement_list(to_str("//URI = [a b c].\n// comment //\n   // test comment\nURI = [a b c].\n"));
+    dump(&result);
+    assert_eq!(
+        result,
+        Ok((
+            to_str(""),
+            Statements::List {
+                list: vec![
+                    Statement::Equivalence {
+                        lhs: Box::new(PatternName { name: "URI" }),
+                        rhs: Box::new(StatementRhs::Expr {
+                            expr: Box::new(SequentialExpression::Sequence {
+                                symbols: vec![
+                                    QuantifiedSymbol::QuantifiedSymbol {
+                                        symbol: Symbol::Terminal { value: "a" },
+                                        quantifier: Quantifier::One
+                                    },
+                                    QuantifiedSymbol::QuantifiedSymbol {
+                                        symbol: Symbol::Terminal { value: "b" },
+                                        quantifier: Quantifier::One
+                                    },
+                                    QuantifiedSymbol::QuantifiedSymbol {
+                                        symbol: Symbol::Terminal { value: "c" },
+                                        quantifier: Quantifier::One
+                                    }
+                                ]
+                            })
+                        })
+                    },
+                ]
+            }
+        ))
+    );
+}
 
 #[test]
 fn parse_statement_list() {
@@ -74,6 +119,36 @@ fn parse_statement_list() {
                         })
                     }
                 ]
+            }
+        ))
+    );
+}
+
+fn is_line_ending(c: u8) -> bool {
+    true
+}
+
+named!(comment<CompleteStr, Comment>,
+    do_parse!(
+        many0!(nom::space)  >>
+        tag_s!("//")    >>
+        text: take_while!(is_line_ending) >>
+        (Comment::Line {
+            text: &text
+        })
+    )
+);
+
+#[test]
+fn parse_comment() {
+    let result = comment(to_str("//test"));
+    dump(&result);
+    assert_eq!(
+        result,
+        Ok((
+            to_str(""),
+            Comment::Line {
+                text: "test"
             }
         ))
     );

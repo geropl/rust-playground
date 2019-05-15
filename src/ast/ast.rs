@@ -5,6 +5,11 @@ pub enum Statements<'a> {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum Comment<'a> {
+    Line { text: &'a str }
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Statement<'a> {
     Equivalence { lhs: Box<StatementLhs<'a>>, rhs: Box<StatementRhs<'a>> }
 }
